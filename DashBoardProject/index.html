@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VISA Dashboard (UI)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>VISA</h2>
+      <nav>
+        <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+        <button class="nav-btn" data-view="records">Records</button>
+        <button class="nav-btn" data-view="reports">Reports</button>
+        <button class="nav-btn" data-view="audit">Audit Log</button>
+      </nav>
+    </aside>
+
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <h1 id="viewTitle">Dashboard</h1>
+      </header>
+
+
+      <!-- DASHBOARD VIEW -->
+      <section id="view-dashboard" class="view active">
+        <section id="cards" class="cards">
+          <div class="card"><div class="k">Total</div><div class="v" id="totalCases">—</div></div>
+          <div class="card"><div class="k">Active</div><div class="v" id="activeCases">—</div></div>
+          <div class="card"><div class="k">Expiring ≤ 90d</div><div class="v" id="expiringSoon">—</div></div>
+          <div class="card"><div class="k">New H-1B (AY)</div><div class="v" id="newH1B">—</div></div>
+        </section>
+
+
+        <section class="filters">
+          <input id="q" placeholder="Search name…" />
+          <select id="visaFilter">
+            <option value="">All Visas</option>
+            <option>H-1B</option><option>J-1</option><option>F-1</option>
+          </select>
+          <select id="deptFilter"><option value="">All Depts</option></select>
+        </section>
+
+
+        <section id="tableSection">
+          <table id="dataTable">
+            <thead><tr id="theadRow"></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="pager">
+            <button id="prevBtn">Prev</button>
+            <span id="pageInfo"></span>
+            <button id="nextBtn">Next</button>
+          </div>
+        </section>
+      </section>
+
+
+      <!-- RECORDS VIEW -->
+      <section id="view-records" class="view">
+        <p>Records view placeholder—reuse the table/filter components from Dashboard as you expand.</p>
+      </section>
+
+
+      <!-- REPORTS VIEW -->
+      <section id="view-reports" class="view">
+        <h2>Reports</h2>
+        <button id="genderBtn">Load Gender Summary</button>
+        <div id="genderReport" class="report-box"></div>
+      </section>
+
+
+      <!-- AUDIT VIEW -->
+      <section id="view-audit" class="view">
+        <p>Audit log placeholder.</p>
+      </section>
+    </main>
+  </div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
