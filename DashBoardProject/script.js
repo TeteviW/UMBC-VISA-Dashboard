@@ -1,6 +1,19 @@
 /***** MODE SWITCH *****/
-const FETCH_MODE = "dummy"; // "dummy" or "api"
-const API_BASE = "http://127.0.0.1:8000"; // when you run FastAPI
+// Auto-detect hosting environment so the same code works locally and on GitHub Pages.
+// - If you visit the site on localhost (127.0.0.1 or localhost) we assume an API is available.
+// - Otherwise we default to the dummy dataset so the static site works on GitHub Pages.
+const QUERY = new URLSearchParams(window.location.search);
+const FETCH_MODE = (function(){
+  const q = QUERY.get('mode'); if(q === 'api' || q === 'dummy') return q;
+  const host = location.hostname;
+  if(host === '127.0.0.1' || host === 'localhost') return 'api';
+  return 'dummy';
+})();
+
+// API base: used only when FETCH_MODE === 'api'. Adjust to your deployed API URL if needed.
+const API_BASE = (location.hostname === '127.0.0.1' || location.hostname === 'localhost')
+  ? 'http://127.0.0.1:8000'
+  : 'https://your-api.example.com';
 
 
 /***** DUMMY DATA *****/
@@ -46,16 +59,25 @@ async function loadData(){
     allRows = DUMMY.slice();
     return;
   }
-  // API mode (FastAPI /api/records)
-  const data = await fetchJSON(`${API_BASE}/api/records?limit=2000`);
-  allRows = data.rows;
+  // API mode (FastAPI /api/records) - try, but fall back to dummy so Pages still works.
+  try{
+    const data = await fetchJSON(`${API_BASE}/api/records?limit=2000`);
+    // expect { rows: [...] } or an array directly
+    allRows = Array.isArray(data) ? data : (data.rows || []);
+  }catch(err){
+    console.warn('Failed to load API data, falling back to dummy dataset:', err);
+    allRows = DUMMY.slice();
+  }
 }
 
 
 /***** CARDS *****/
 function loadCards(){
-  const today = new Date();
-  const in90 = new Date(); in90.setDate(today.getDate()+90);
+  const today = new Date(); 
+  today.setHours(0,0,0,0);
+  
+  const in90 = new Date(today); 
+  in90.setDate(today.getDate()+90);
 
 
   const total = allRows.length;
@@ -107,12 +129,22 @@ function applyFilters(){
 
 
 /***** TABLE & PAGINATION *****/
+const dateCols = new Set(["startDate","endDate"]);
+
 function renderTable(rows){
   viewRows = rows;
   if(sortCol){
     viewRows.sort((a,b)=>{
-      const x = (a[sortCol]??"")+""; const y = (b[sortCol]??"")+"";
-      return sortAsc ? x.localeCompare(y) : y.localeCompare(x);
+      const av = a[sortCol], bv = b[sortCol];
+      if (dateCols.has(sortCol)){
+        const ax = av ? new Date(av).getTime() : 0;
+        const bx = bv ? new Date(bv).getTime() : 0;
+        return sortAsc ? ax - bx : bx - ax;
+      }else{
+        const x = (av ?? "") + ""; 
+        const y = (bv ?? "") + "";
+        return sortAsc ? x.localeCompare(y) : y.localeCompare(x);
+      }
     });
   }
   const start=(page-1)*per, end=start+per, slice=viewRows.slice(start,end);
