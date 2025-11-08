@@ -1,14 +1,16 @@
 <?php
-// Aiven connection URI
-$uri = "mysql://avnadmin:AVNS_Mr1ySEjkzZc8jSohYbl@loginapp-mysql-2c9372e7-mucamedickens-4503.f.aivencloud.com:25488/defaultdb?ssl-mode=REQUIRED";
+// Aiven connection (without exposing password)
+$uri = "mysql://avnadmin:@loginapp-mysql-2c9372e7-mucamedickens-4503.f.aivencloud.com:25488/defaultdb?ssl-mode=REQUIRED";
 
 $fields = parse_url($uri);
 
-$host = $fields['host'];
-$port = $fields['port'];
-$user = $fields['user'];
-$pass = $fields['pass'];
+$host   = $fields['host'];
+$port   = $fields['port'];
+$user   = $fields['user'];
 $dbname = ltrim($fields['path'], '/'); // "defaultdb"
+
+// Get the password from an environment variable
+$pass = getenv('AIVEN_DB_PASSWORD');
 
 // Path to your CA cert from Aiven
 $caCert = __DIR__ . '/ca.pem';
@@ -36,11 +38,4 @@ if (!mysqli_real_connect(
 )) {
     die("Connection failed: " . mysqli_connect_error());
 }
-
-// Optional: verify we are using SSL
-/*
-$result = $conn->query("SHOW STATUS LIKE 'Ssl_cipher'");
-$row = $result->fetch_assoc();
-echo 'SSL cipher in use: ' . $row['Value'];
-*/
 ?>
