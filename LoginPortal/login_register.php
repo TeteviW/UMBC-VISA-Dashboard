@@ -74,12 +74,9 @@ if (isset($_POST['login'])) {
             $_SESSION['email']   = $user['email'];
             $_SESSION['role']    = $user['role'];
 
-            // Redirect based on role
-            if ($user['role'] === 'admin') {
-                header("Location: ../DashBoardProject/");
-            } else {
-                header("Location: ../DashBoardProject/");
-            }
+            // Re-direct current page to the DashBoard
+            $dashboard = '../DashBoardProject/index.html';
+            header("Location: $dashboard");
             exit();
         }
     }

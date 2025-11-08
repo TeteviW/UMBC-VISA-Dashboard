@@ -1,21 +1,28 @@
 <?php
+
+// Loading enviroment variables from the .env file at root.
+//require_once __DIR__ . '/../vendor/autoload.php';
+//$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+// $dotenv->load();
+
 // Aiven connection (without exposing password)
-$uri = getenv('AIVEN_DB_URI');
-$fields = parse_url($uri);
+$host   = getenv('AIVEN_DB_HOST');
+$port   = getenv('AIVEN_DB_PORT');
+$user   = getenv('AIVEN_DB_USER');
+$pass   = getenv('AIVEN_DB_PASSWORD');
+$dbname = getenv('AIVEN_DB_NAME');
+$caCert = getenv('AIVEN_CA_CERT_PATH') ?: (__DIR__ . '/ca.pem');
 
-$host   = $fields['host'];
-$port   = $fields['port'];
-$user   = $fields['user'];
-$dbname = ltrim($fields['path'] ?? '/userauth_db', '/');
+//var_dump($host, $port, $user, $dbname, $caCert);
+//exit;
 
-// Get the password from an environment variable
-$pass = getenv('AIVEN_DB_PASSWORD');
+// Basic sanity check
+if (!$host || !$port || !$user || !$pass || !$dbname) {
+    die("One or more required DB env vars are missing.");
+}
 
-// Path to your CA cert from Aiven
-$caCert = getenv('AIVEN_CA_CERT_PATH');
-
+// Connect with mySQL DB
 $conn = mysqli_init();
-
 if (!$conn) {
     die("mysqli_init() failed");
 }
@@ -32,8 +39,9 @@ if (!mysqli_real_connect(
     $user,
     $pass,
     $dbname,
-    $port,
-    MYSQLI_CLIENT_SSL
+    (int) $port,
+    null,                  // socket (none, because we connect over TCP)
+    MYSQLI_CLIENT_SSL      // flags
 )) {
     die("Connection failed: " . mysqli_connect_error());
 }
