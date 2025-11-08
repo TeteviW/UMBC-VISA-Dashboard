@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const redirectDelay = 2000; // basically 2 seconds
 
     // Destination (relative to root)
-    const redirectURL = './DashBoardProject/';
+    const redirectURL = './LoginPortal/index.php';
 
     console.log('Redirecting to ${redirectURL} in ${redirectDelay / 1000}s');
 
