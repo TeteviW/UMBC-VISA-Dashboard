@@ -1,19 +1,18 @@
 <?php
 // Aiven connection (without exposing password)
-$uri = "mysql://avnadmin:@loginapp-mysql-2c9372e7-mucamedickens-4503.f.aivencloud.com:25488/defaultdb?ssl-mode=REQUIRED";
-
+$uri = getenv('AIVEN_DB_URI');
 $fields = parse_url($uri);
 
 $host   = $fields['host'];
 $port   = $fields['port'];
 $user   = $fields['user'];
-$dbname = 'userauth_db'; // <- target database
+$dbname = ltrim($fields['path'] ?? '/userauth_db', '/');
 
 // Get the password from an environment variable
 $pass = getenv('AIVEN_DB_PASSWORD');
 
 // Path to your CA cert from Aiven
-$caCert = __DIR__ . '/ca.pem';
+$caCert = getenv('AIVEN_CA_CERT_PATH');
 
 $conn = mysqli_init();
 
