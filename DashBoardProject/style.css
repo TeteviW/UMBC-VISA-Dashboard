@@ -44,3 +44,73 @@ tr:nth-child(even){ background:#fcfcfe; }
 
 
 .report-box{ margin-top:10px; padding:10px; background:#fff; border:1px solid var(--line); border-radius:12px; }
+
+
+.report-controls{
+    display: flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:flex-end;
+    margin: 8px 0 12px;
+}
+
+
+.report-controls label{
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+
+.report-controls select,
+.report-controls input[type="date"]{
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    min-width: 160px;
+}
+
+
+.report-controls button{
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    background: #111827;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.report-controls button:hover{
+    background: #1f2937;
+}
+
+.report-table{
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    margin-top: 10px;
+}
+
+
+.report-table th,
+.report-table td{
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+}
+
+
+.report-table th{
+    background: #fafafa;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.report-table tr:nth-child(even){
+    background: #fcfcfe;
+}

@@ -155,7 +155,16 @@ function renderTable(rows){
 
 
   // body
-  const bodyHTML = slice.map(r=>`<tr>${cols.map(c=>`<td>${r[c]??""}</td>`).join("")}</tr>`).join("");
+  const bodyHTML = slice.map(r => {
+    const cells = cols.map(c => {
+      let val = r[c] ?? "";
+      if (dateCols.has(c) && val){
+        val = formatDateDisplay(val);
+      }
+      return `<td>${val}</td>`;
+    }).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("");
   qs("#dataTable tbody").innerHTML = bodyHTML;
 
 
@@ -185,6 +194,7 @@ qs("#nextBtn").onclick = ()=>{
 
 
 /***** REPORTS (demo) *****/
+/*
 qs("#genderBtn").addEventListener("click", async ()=>{
   if(FETCH_MODE === "dummy"){
     const counts = countBy(allRows, r=>r.gender||"Unknown");
@@ -195,7 +205,296 @@ qs("#genderBtn").addEventListener("click", async ()=>{
     qs("#genderReport").textContent = pairs.join(" | ");
   }
 });
+*/
 
+/***** REPORTS *****/
+
+// Helper: parse a date string safely
+function parseDate(value){
+  if(!value) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Helper: format number of days
+function daysToYears(days){
+  if(!days || days <= 0) return "0.0";
+  const years = days / 365;
+  return years.toFixed(1);
+}
+
+// Helper: format a date value as MM/DD/YYYY for display
+function formatDateDisplay(value){
+  if(!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
+  if(isNaN(d.getTime())) return value;
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()+0).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
+}
+
+
+// Render summary + table in the Reports tab
+function setReportTable(columns, rows){
+  // header
+  setHTML("reportHead", columns.map(c=>`<th>${c}</th>`).join(""));
+
+  // body
+  const bodyHTML = rows.map(r=>{
+   // r can be an array of cell values
+   return `<tr>${r.map(cell=>`<td>${cell ?? ""}</td>`).join("")}</tr>`;
+  }).join("");
+  setHTML("reportBody", bodyHTML);
+}
+
+
+// Main dispatcher for reports
+function runReport(){
+  if(!allRows || allRows.length === 0){
+    setHTML("reportSummary", "No data available.");
+    setHTML("reportHead", "");
+    setHTML("reportBody", "");
+    return;
+  }
+
+  const type = qs("#reportType").value;
+  const startVal = qs("#reportStart").value;
+  const endVal = qs("#reportEnd").value;
+
+  let start = startVal ? parseDate(startVal) : null;
+  let end = endVal ? parseDate(endVal) : null;
+
+  // Normalize end date to end of day
+  if(end){ end.setHours(23,59,59,999);  }
+
+  switch(type){
+    case "gender":
+      renderGenderReport();
+      break;
+    case "dept":
+      renderDeptReport();
+      break;
+    case "visaType":
+      renderVisaTypeReport();
+      break;
+    case "lengthStay":
+      renderLengthOfStayReport();
+      break;
+    case "newH1B":
+      renderNewH1BReport(start, end);
+      break;
+    case "expiringH1B":
+      renderExpiringH1BReport(start, end);
+      break;
+    default:
+      setHTML("reportSummary", "Unknown report type.");
+      setHTML("reportHead", "");
+      setHTML("reportBody", "");
+  }
+}
+
+
+/***** Individual Reports Implementation *****/
+
+// Gender Summart Report
+function renderGenderReport(){
+  const counts = countBy(allRows, r=>r.gender||"Unknown");
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+
+
+  const rows = Object.entries(counts).map(([gender,count])=>{
+    const pct = total ? ((count/total)*100).toFixed(1) + "%" : "0.0%";
+    return [gender, count, pct];
+  });
+
+  setHTML(
+    "reportSummary",
+    `Gender Summary: ${total} records grouped by gender (counts and percentage of total).`
+  );
+  setReportTable(["Gender","Count","Percent"], rows);
+}
+
+
+// Department Summary Report
+function renderDeptReport(){
+  const counts = countBy(allRows, r=>r.department||"Unassigned");
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+
+  const rows = Object.entries(counts)
+    .sort((a,b)=>a[0].localeCompare(b[0]))
+    .map(([dept,count])=>{
+      const pct = total ? ((count/total)*100).toFixed(1) + "%" : "0.0%";
+      return [dept, count, pct];
+    });
+
+  setHTML(
+    "reportSummary",
+    `Department Summary: ${total} active records grouped by department.`
+  );
+  setReportTable(["Department","Count","Percent"], rows);
+}
+
+
+// Visa Type Summary Report
+function renderVisaTypeReport(){
+  const counts = countBy(allRows, r=>r.visaType||"Unknown");
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+
+  const rows = Object.entries(counts)
+    .sort((a,b)=>a[0].localeCompare(b[0]))
+    .map(([vt,count])=>{
+      const pct = total ? ((count/total)*100).toFixed(1) + "%" : "0.0%";
+      return [vt, count, pct];
+    });
+
+  setHTML(
+    "reportSummary",
+    `Visa Type Summary: ${total}records grouped by visa type.`
+  );
+  setReportTable(["Visa Type","Count","Percent"], rows);
+}
+
+
+// length of Stay Report (average & max)
+function renderLengthOfStayReport(){
+  const rowsWithDur = allRows
+  .map(r=>{
+    const s = parseDate(r.startDate);
+      const e = parseDate(r.endDate);
+      if(!s || !e) return null;
+      const days = Math.round((e - s) / (1000*60*60*24));
+      return {...r, days};
+    })
+    .filter(Boolean);
+
+    if (rowsWithDur.length === 0){
+      setHTML("reportSummary", "No records with valid start and end dates.");
+      setReportTable([], []);
+      return;
+    }
+
+    const totalDays = rowsWithDur.reduce((sum,r)=>sum + (r.days || 0), 0);
+    const avgDays = totalDays / rowsWithDur.length;
+    const maxRec = rowsWithDur.reduce((max,r)=>r.days > max.days ? r : max, rowsWithDur[0]);
+
+    const avgYears = daysToYears(avgDays);
+    const maxYears = daysToYears(maxRec.days);
+
+    setHTML(
+      "reportSummary",
+      `Length of Stay Report: ${rowsWithDur.length} records. Average duration is ${avgYears} years. Maximum duration is ${maxYears} years (for ${maxRec.givenName} ${maxRec.familyName}).`
+    );
+
+    const rows = rowsWithDur.map(r=>{
+    const name = `${r.givenName ?? ""} ${r.familyName ?? ""}`.trim();
+    return [
+      name || "(Unknown)",
+      r.visaType || "",
+      r.department || "",
+      formatDateDisplay(r.startDate),
+      formatDateDisplay(r.endDate),
+      daysToYears(r.days)
+    ];
+  });
+
+  setReportTable(
+    ["Name","Visa Type","Department","Start Date","End Date","Duration (years)"],
+    rows
+  );
+}
+
+
+// New H-1B Report (by start date range)
+function renderNewH1BReport(start, end){
+  // default range: current calendar year
+  const now = new Date();
+  if(!start){
+    start = new Date(now.getFullYear(), 0, 1); // Jan 1
+  }
+  if(!end){
+    end = new Date(now.getFullYear(), 11, 31); // Dec 31
+  }
+
+  const rows = allRows.filter(r=>{
+    if(r.visaType !== "H-1B") return false;
+    const s = parseDate(r.startDate);
+    if(!s) return false;
+    return s >= start && s <= end;
+  });
+
+  const rangeText = `${formatDateDisplay(start)} → ${formatDateDisplay(end)}`;
+  setHTML(
+    "reportSummary",
+    `New H-1B Report: ${rows.length} cases with start dates between ${rangeText}.`
+  );
+
+
+  const tableRows = rows.map(r=>{
+    const name = `${r.givenName ?? ""} ${r.familyName ?? ""}`.trim();
+    return [
+      name || "(Unknown)",
+      r.department || "",
+      formatDateDisplay(r.startDate),
+      formatDateDisplay(r.endDate)
+    ];
+  });
+
+  setReportTable(
+    ["Name","Department","Start Date","End Date"],
+    tableRows
+  );
+}
+
+
+// Expiring H-1B Report / Extension style Report (by end date range)
+function renderExpiringH1BReport(start, end){
+  // default range: next 12 months
+  const now = new Date();
+  if(!start){
+    start = now;
+  }
+  if(!end){
+    end = new Date(now);
+    end.setFullYear(now.getFullYear() + 1);
+  }
+
+  const rows = allRows.filter(r=>{
+    if(r.visaType !== "H-1B") return false;
+    const e = parseDate(r.endDate);
+    if(!e) return false;
+    return e >= start && e <= end;
+  });
+
+  const rangeText = `${formatDateDisplay(start)} → ${formatDateDisplay(end)}`;
+  setHTML(
+    "reportSummary",
+    `Expiring H-1B Report: ${rows.length} cases with end dates between ${rangeText}.`
+  );
+
+  const tableRows = rows.map(r=>{
+    const name = `${r.givenName ?? ""} ${r.familyName ?? ""}`.trim();
+    return [
+      name || "(Unknown)",
+      r.department || "",
+      formatDateDisplay(r.startDate),
+      formatDateDisplay(r.endDate)
+    ];
+  });
+
+
+  setReportTable(
+    ["Name","Department","Start Date","End Date"],
+    tableRows
+  );
+}
+
+
+// Wire up the Run Report button
+const runReportBtn = qs("#runReportBtn");
+if(runReportBtn){
+  runReportBtn.addEventListener("click", runReport);
+}
 
 /***** HELPERS *****/
 function qs(s){ return document.querySelector(s); }
