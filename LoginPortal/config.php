@@ -7,7 +7,7 @@ $fields = parse_url($uri);
 $host   = $fields['host'];
 $port   = $fields['port'];
 $user   = $fields['user'];
-$dbname = ltrim($fields['path'], '/'); // "defaultdb"
+$dbname = 'userauth_db'; // <- target database
 
 // Get the password from an environment variable
 $pass = getenv('AIVEN_DB_PASSWORD');
