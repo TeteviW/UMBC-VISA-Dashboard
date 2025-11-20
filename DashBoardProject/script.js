@@ -18,10 +18,10 @@ const API_BASE = (location.hostname === '127.0.0.1' || location.hostname === 'lo
 
 /***** DUMMY DATA *****/
 const DUMMY = [
-  { givenName:"Ana",   familyName:"Khan",  visaType:"H-1B", startDate:"2024-08-01", endDate:"2027-08-01", department:"CSEE",   gender:"F" },
-  { givenName:"Ben",   familyName:"Li",    visaType:"J-1",  startDate:"2025-01-10", endDate:"2026-01-10", department:"Math",   gender:"M" },
-  { givenName:"Chidi", familyName:"Okoye", visaType:"F-1",  startDate:"2023-09-01", endDate:"2026-05-25", department:"CS",     gender:"M" },
-  { givenName:"Dina",  familyName:"Roy",   visaType:"H-1B", startDate:"2022-11-03", endDate:"2025-11-03", department:"Biology",gender:"F" }
+  { givenName:"Ana",   familyName:"Khan",  visaType:"H-1B", startDate:"2024-08-01", endDate:"2027-08-01", department:"CSEE",   gender:"Female" },
+  { givenName:"Ben",   familyName:"Li",    visaType:"J-1",  startDate:"2025-01-10", endDate:"2026-01-10", department:"Math",   gender:"Male" },
+  { givenName:"Chidi", familyName:"Okoye", visaType:"F-1",  startDate:"2023-09-01", endDate:"2026-05-25", department:"CS",     gender:"Male" },
+  { givenName:"Dina",  familyName:"Roy",   visaType:"H-1B", startDate:"2022-11-03", endDate:"2025-11-03", department:"Biology",gender:"Female" }
 ];
 
 
