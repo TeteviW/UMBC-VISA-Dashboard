@@ -15,7 +15,7 @@
       <h2>VISA</h2>
       <nav>
         <button class="nav-btn active" data-view="dashboard">Dashboard</button>
-        <button class="nav-btn" data-view="records">Records</button>
+        <button class="nav-btn" data-view="archive">Archive</button>
         <button class="nav-btn" data-view="reports">Reports</button>
         <button class="nav-btn" data-view="audit">Audit Log</button>
       </nav>
@@ -65,9 +65,16 @@
 
       <!-- ARCHIVE VIEW -->
       <section id="view-archive" class="view">
-        <p>Archive view placeholder—reuse the table/filter components from Dashboard as you expand.</p>
-      </section>
+          <h2>Archived Cases</h2>
+          <p>Cases whose end date is before today are automatically shown here and removed from the main dashboard.</p>
 
+          <table id="archiveTable">
+              <thead>
+              <tr id="archiveHead"></tr>
+              </thead>
+              <tbody id="archiveBody"></tbody>
+          </table>
+      </section>
 
       <!-- REPORTS VIEW -->
       <section id="view-reports" class="view">
