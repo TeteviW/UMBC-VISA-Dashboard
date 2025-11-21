@@ -1,2 +1,17 @@
+<<<<<<< HEAD
 Downloads
 Downloads.pub
+=======
+# === Secrets & environment ===
+.env
+*.pem
+*.key
+
+# === System files ===
+.DS_Store
+Thumbs.db
+
+# === IDE/editor files ===
+.vscode/
+.idea/
+>>>>>>> origin/main

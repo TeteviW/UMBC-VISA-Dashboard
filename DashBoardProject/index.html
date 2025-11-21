@@ -72,8 +72,44 @@
       <!-- REPORTS VIEW -->
       <section id="view-reports" class="view">
         <h2>Reports</h2>
-        <button id="genderBtn">Load Gender Summary</button>
-        <div id="genderReport" class="report-box"></div>
+        
+        <section class="report-controls">
+          <label>
+            <span>Report type</span>
+            <select id="reportType">
+              <option value="gender">Gender Summary</option>
+              <option value="dept">Department Summary</option>
+              <option value="visaType">Visa Type Summary</option>
+              <option value="lengthStay">Length of Stay</option>
+              <option value="newH1B">New H-1B (by start date)</option>
+              <option value="expiringH1B">H1B Expiring (by end date)</option>
+
+            </select>
+          </label>
+
+          <label>
+            <span>Start date</span>
+            <input type="date" id="reportStart" />
+          </label>
+
+          <label>
+            <span>End date</span>
+            <input type="date" id="reportEnd" />
+          </label>
+
+          <button id="runReportBtn">Run Report</button>
+        </section>
+
+        <section id="reportSummary" class="report-box"></section>
+
+        <section id="reportTableSection">
+          <table id="reportTable" class="report-table">
+            <thead>
+              <tr id="reportHead"></tr>
+            </thead>
+            <tbody id="reportBody"></tbody>
+          </table>
+        </section>
       </section>
 
 
