@@ -546,3 +546,94 @@ function countBy(arr, fn){ return arr.reduce((m, x)=>{ const k=fn(x); m[k]=(m[k]
   setupFilters();
   renderArchiveTable(); //build Archive view based on expired endDate
 })();
+
+
+
+/***** Color Coded Expiration Status *****/
+
+// Helper: days until a given end date (from today)
+
+function daysUntil(value){
+  const d = parseDate(value);
+  if(!d) return null;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const diffMs = d.getTime() - today.getTime();
+  return Math.round(diffMs / (1000*60*60*24));
+}
+
+
+// Helper: Map days to status label + CSS class
+
+function getUrgencyInfo(days){
+  if(days === null) return { label: "No date", cls: "status-unknown" };
+  if(days < 0) return { label: "Expired", cls: "status-expired" };
+  if(days <= 30) return { label: `${days} days (Urgent)`, cls: "status-red"};
+  if(days <= 90) return { label: `${days} days (Soon)`, cls: "status-yellow"};
+  return { label: `${days} days`, cls: "status-green" };
+}
+
+
+// Dashboard: show details for Expiring ≤ 90 days card
+
+function showExpiringDetails(){
+  const panel = qs("#expiringPanel");
+  const body = qs("#expiringBody");
+  if(!panel || !body) return;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const in90 = new Date(today);
+  in90.setDate(today.getDate()+90);
+
+  // Filter rows expiring within the next 90 days
+
+  const rows = allRows
+    .map(r => {
+      const d = parseDate(r.endDate);
+      if(!d) return null;
+      return { ...r, _endDateObj: d };
+    })
+    .filter(r => r && r._endDateObj >= today && r._endDateObj <= in90)
+    .sort((a,b) => a._endDateObj - b._endDateObj);
+
+    if(rows.length === 0){
+      body.innerHTML = `<tr><td colspan="5">No cases expiring within 90 days.</td></tr>`;
+    } else {
+      const html = rows.map(r => {
+        const name = `${r.givenName ?? ""} ${r.familyName ?? ""}`.trim() || "(Unknown)";
+        const endStr = formatDateDisplay(r.endDate);
+        const days = daysUntil(r.endDate);
+        const info = getUrgencyInfo(days);
+        return `<tr>
+          <td>${name}</td>
+          <td>${r.visaType || ""}</td>
+          <td>${r.department || ""}</td>
+          <td>${endStr}</td>
+          <td><span class="status-pill ${info.cls}">${info.label}</span></td>
+        </tr>`;
+      }).join("");
+      body.innerHTML = html;
+    }
+
+    panel.classList.remove("hidden");
+}
+
+
+// Wire up click on Expiring ≤ 90 days card and panel close button
+
+const expiringCard = qs("#card-expiring");
+const expiringClose = qs("#expiringClose");
+
+if(expiringCard){
+  expiringCard.addEventListener("click", showExpiringDetails);
+}
+
+
+if(expiringClose){
+  expiringClose.addEventListener("click", ()=>{
+    const panel = qs("#expiringPanel");
+    if(panel) panel.classList.add("hidden");
+  });
+}
+

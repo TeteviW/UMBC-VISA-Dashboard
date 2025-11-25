@@ -34,7 +34,7 @@
         <section id="cards" class="cards">
           <div class="card"><div class="k">Total</div><div class="v" id="totalCases">—</div></div>
           <div class="card"><div class="k">Active</div><div class="v" id="activeCases">—</div></div>
-          <div class="card"><div class="k">Expiring ≤ 90d</div><div class="v" id="expiringSoon">—</div></div>
+          <div class="card card-clickable" id="card-expiring"><div class="k">Expiring ≤ 90d</div><div class="v" id="expiringSoon">—</div></div>
           <div class="card"><div class="k">New H-1B (AY)</div><div class="v" id="newH1B">—</div></div>
         </section>
 
@@ -59,6 +59,27 @@
             <span id="pageInfo"></span>
             <button id="nextBtn">Next</button>
           </div>
+        </section>
+
+        
+        <section id="expiringPanel" class="expiring-panel hidden">
+          <div class="expiring-header">
+            <h3>Expiring within 90 days</h3>
+            <button id="expiringClose" type="button">Close</button>
+          </div>
+
+          <table class="expiring-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Visa Type</th>
+                <th>Department</th>
+                <th>End Date</th>
+                <th>Urgency</th>
+              </tr>
+            </thead>
+            <tbody id="expiringBody"></tbody>
+          </table>
         </section>
       </section>
 
