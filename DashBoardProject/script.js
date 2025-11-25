@@ -117,7 +117,7 @@ function applyFilters(){
   const dept = qs("#deptFilter").value;
 
 
-  let rows = allRows.slice();
+  let rows = allRows.filter(isActive);
   if(q) rows = rows.filter(r => `${r.givenName} ${r.familyName}`.toLowerCase().includes(q));
   if(visa) rows = rows.filter(r => r.visaType === visa);
   if(dept) rows = rows.filter(r => r.department === dept);
@@ -185,6 +185,30 @@ function renderTable(rows){
   });
 }
 
+function renderArchiveTable(){
+  const archived = allRows.filter(isArchived);
+
+  const head = qs("#archiveHead");
+  const body = qs("#archiveBody");
+  if(!head || !body) return;
+
+  //Same columns as main table
+  head.innerHTML = cols.map(c=>`<th>${c}</th>`).join("");
+
+  const rowsHTML = archived.map(r => {
+    const cells = cols.map(c => {
+      let val = r[c] ?? "";
+      if (dateCols.has(c) && val){
+        val = formatDateDisplay(val);
+      }
+      return `<td>${val}</td>`;
+    }).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("");
+
+  body.innerHTML = rowsHTML;
+}
+
 
 qs("#prevBtn").onclick = ()=>{ if(page>1){ page--; renderTable(viewRows); } };
 qs("#nextBtn").onclick = ()=>{
@@ -234,7 +258,18 @@ function formatDateDisplay(value){
   return `${mm}/${dd}/${yyyy}`;
 }
 
+//A record is archived if its endDate has passed.
+function isArchived(r){
+  const end = parseDate(r.endDate);
+  if(!end) return false;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return end < today;
+}
 
+function isActive(r){
+  return !isArchived(r);
+}
 // Render summary + table in the Reports tab
 function setReportTable(columns, rows){
   // header
@@ -509,4 +544,5 @@ function countBy(arr, fn){ return arr.reduce((m, x)=>{ const k=fn(x); m[k]=(m[k]
   await loadData();
   loadCards();
   setupFilters();
+  renderArchiveTable(); //build Archive view based on expired endDate
 })();
