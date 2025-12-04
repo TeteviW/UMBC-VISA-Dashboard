@@ -1,0 +1,7 @@
+# === Secrets & environment ===
+.env
+*.pem
+*.key
+
+# === Irrelevant Info ===
+node_modules
