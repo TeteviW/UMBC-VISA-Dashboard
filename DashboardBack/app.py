@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from fastapi import Path
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
+from datetime import datetime
 import pandas as pd
 import re
 import numpy as np
@@ -35,6 +36,49 @@ COLUMN_MAP = {
     "Gender": "gender",
     # "Case type" -> visaType (parsed below)
 }
+
+# Simulated Audit Log Data
+AUDIT_LOG = [{
+    "timestamp": "2024-11-30T09:15:22",
+        "user": "oiss_admin",
+        "action": "UPDATE",
+        "record": "Ana Khan (H-1B)",
+        "details": "Updated end date from 2026-08-01 to 2027-08-01"
+},
+{
+        "timestamp": "2024-11-30T09:20:05",
+        "user": "oiss_analyst",
+        "action": "VIEW",
+        "record": "Expiring ≤ 90 days panel",
+        "details": "Viewed expiring cases dashboard panel"
+    },
+    {
+        "timestamp": "2024-11-30T10:01:10",
+        "user": "oiss_admin",
+        "action": "IMPORT",
+        "record": "Case tracking for CS class.xlsx",
+        "details": "Imported latest H-1B Excel file"
+    },
+    {
+        "timestamp": "2024-11-30T10:15:42",
+        "user": "director_oiss",
+        "action": "REPORT",
+        "record": "Expiring H-1B (next 12 months)",
+        "details": "Generated expiring H-1B report for planning extensions"
+    },
+    {
+        "timestamp": "2024-11-30T11:02:33",
+        "user": "oiss_admin",
+        "action": "UPDATE",
+        "record": "Ben Li (J-1)",
+        "details": "Corrected department from 'Math' to 'Mathematics & Statistics'"
+    },
+]
+
+@app.get("/api/audit")
+def api_audit():
+    rows = sorted(AUDIT_LOG, key=lambda r: r["timestamp"], reverse=True)
+    return {"rows": rows}
 
 #Normalize visa type from "Case type" values
 #For example: "H1-B initial COS from J-1", "H-1B extension", "TN petiotion", "0-1",

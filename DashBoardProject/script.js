@@ -33,6 +33,48 @@ let page=1, per=25;
 let sortCol=null, sortAsc=true;
 
 
+let auditRows = [];
+
+// simulated audit data for dummy mode
+const DUMMY_AUDIT = [
+  {
+    timestamp: "2024-11-30T11:02:33",
+    user: "oiss_admin",
+    action: "UPDATE",
+    record: "Ben Li (J-1)",
+    details: "Corrected department from 'Math' to 'Mathematics & Statistics'"
+  },
+  {
+    timestamp: "2024-11-30T10:15:42",
+    user: "director_oiss",
+    action: "REPORT",
+    record: "Expiring H-1B (next 12 months)",
+    details: "Generated expiring H-1B report for planning extensions"
+  },
+  {
+    timestamp: "2024-11-30T10:01:10",
+    user: "oiss_admin",
+    action: "IMPORT",
+    record: "Case tracking for CS class.xlsx",
+    details: "Imported latest H-1B Excel file"
+  },
+  {
+    timestamp: "2024-11-30T09:20:05",
+    user: "oiss_analyst",
+    action: "VIEW",
+    record: "Expiring ≤ 90 days panel",
+    details: "Viewed expiring cases dashboard panel"
+  },
+  {
+    timestamp: "2024-11-30T09:15:22",
+    user: "oiss_admin",
+    action: "UPDATE",
+    record: "Ana Khan (H-1B)",
+    details: "Updated end date from 2026-08-01 to 2027-08-01"
+  }
+];
+
+
 /***** VIEW SWITCHING *****/
 document.querySelectorAll(".nav-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
@@ -243,6 +285,21 @@ function formatDateDisplay(value){
   const dd = String(d.getDate()+0).padStart(2,'0');
   const yyyy = d.getFullYear();
   return `${mm}/${dd}/${yyyy}`;
+}
+
+// Helper: format timestamp nicely
+function formatDateTime(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(isNaN(d.getTime())) return value;
+
+  const mm =  String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const min = String(d.getMinutes()).padStart(2,'0');
+
+  return `${mm}/${dd}/${yyyy} ${hh}:${min}`;
 }
 
 //A record is archived if its endDate has passed.
@@ -634,4 +691,119 @@ if(expiringClose){
     if(panel) panel.classList.add("hidden");
   });
 }
+
+
+/***** AUDIT LOG VIEWER *****/
+async function loadAudit(){
+  // Try API first
+  if(FETCH_MODE === "api"){
+    try{
+      const data = await fetchJSON(`${API_BASE}/api/audit`);
+      auditRows = Array.isArray(data) ? data : (data.rows || []);
+      }catch(err){
+      console.warn("Failed to load audit log from API, using dummy data:", err);
+      auditRows = DUMMY_AUDIT.slice();
+    }
+  }else{
+    // dummy mode
+    auditRows = DUMMY_AUDIT.slice();
+  }
+
+  // Sort newest first just in case
+  auditRows.sort((a,b)=> (b.timestamp || "").localeCompare(a.timestamp || ""));
+  setupAuditFilters();
+  renderAuditTable(auditRows);
+}
+
+
+function setupAuditFilters(){
+  const userSelect = qs("#auditUserFilter");
+  if(!userSelect) return;
+
+  const users = [...new Set(auditRows.map(r=>r.user).filter(Boolean))].sort();
+  userSelect.innerHTML = ['<option value="">All users</option>', ...users.map(u=>`<option>${u}</option>`)].join("");
+
+  userSelect.addEventListener("change", applyAuditFilters);
+  const fromInput = qs("#auditFrom");
+  const toInput = qs("#auditTo");
+  const clearBtn = qs("#auditClearBtn");
+
+  if(fromInput) fromInput.addEventListener("change", applyAuditFilters);
+  if(toInput) toInput.addEventListener("change", applyAuditFilters);
+  if(clearBtn){
+    clearBtn.addEventListener("click", ()=>{
+      userSelect.value = "";
+      if(fromInput) fromInput.value = "";
+      if(toInput) toInput.value = "";
+      renderAuditTable(auditRows);
+    });
+  }
+}
+
+function applyAuditFilters(){
+  const user = qs("#auditUserFilter")?.value || "";
+  const fromVal = qs("#auditFrom")?.value || "";
+  const toVal = qs("#auditTo")?.value || "";
+
+  let rows = auditRows.slice();
+
+  if(user){
+    rows = rows.filter(r => r.user === user);
+  }
+
+  let fromDate = null, toDate = null;
+  if(fromVal){
+    fromDate = new Date(fromVal);
+    fromDate.setHours(0,0,0,0);
+  }
+
+  if(toVal){
+    toDate = new Date(toVal);
+    toDate.setHours(23,59,59,999);
+  }
+
+  if(fromDate || toDate){
+    rows = rows.filter(r=>{
+      const d = r.timestamp ? new Date(r.timestamp) : null;
+      if(!d || isNaN(d.getTime())) return false;
+      if(fromDate && d < fromDate) return false;
+      if(toDate && d > toDate) return false;
+      return true;
+    });
+  }
+
+  renderAuditTable(rows);
+}
+
+function renderAuditTable(rows){
+  const body = qs("#auditBody");
+  if(!body) return;
+
+  if(!rows || rows.length === 0){
+    body.innerHTML = `<tr><td colspan="5">No audit entries match the current filters.</td></tr>`;
+    return;
+  }
+
+  const html = rows.map(r=>{
+      return `<tr>
+      <td>${formatDateTime(r.timestamp)}</td>
+      <td>${r.user || ""}</td>
+      <td>${r.action || ""}</td>
+      <td>${r.record || ""}</td>
+      <td>${r.details || ""}</td>
+    </tr>`;
+  }).join("");
+
+  body.innerHTML = html;
+}
+
+
+/***** BOOT *****/
+(async function boot(){
+  await loadData();
+  loadCards();
+  setupFilters();
+  renderArchiveTable(); //build Archive view based on expired endDate
+  await loadAudit();
+})();
 
