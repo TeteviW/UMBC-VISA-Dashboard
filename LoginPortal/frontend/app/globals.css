@@ -19,7 +19,12 @@ body {
 }
 
 .container {
-    margin: 0 15px;
+    width: 100%;
+    max-width: 450px;
+    padding: 30px;
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
 .form-box {

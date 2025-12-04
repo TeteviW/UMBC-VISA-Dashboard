@@ -15,7 +15,7 @@
       <h2>VISA</h2>
       <nav>
         <button class="nav-btn active" data-view="dashboard">Dashboard</button>
-        <button class="nav-btn" data-view="records">Records</button>
+        <button class="nav-btn" data-view="archive">Archive</button>
         <button class="nav-btn" data-view="reports">Reports</button>
         <button class="nav-btn" data-view="audit">Audit Log</button>
       </nav>
@@ -34,7 +34,7 @@
         <section id="cards" class="cards">
           <div class="card"><div class="k">Total</div><div class="v" id="totalCases">—</div></div>
           <div class="card"><div class="k">Active</div><div class="v" id="activeCases">—</div></div>
-          <div class="card"><div class="k">Expiring ≤ 90d</div><div class="v" id="expiringSoon">—</div></div>
+          <div class="card card-clickable" id="card-expiring"><div class="k">Expiring ≤ 90d</div><div class="v" id="expiringSoon">—</div></div>
           <div class="card"><div class="k">New H-1B (AY)</div><div class="v" id="newH1B">—</div></div>
         </section>
 
@@ -60,30 +60,127 @@
             <button id="nextBtn">Next</button>
           </div>
         </section>
+
+        
+        <section id="expiringPanel" class="expiring-panel hidden">
+          <div class="expiring-header">
+            <h3>Expiring within 90 days</h3>
+            <button id="expiringClose" type="button">Close</button>
+          </div>
+
+          <table class="expiring-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Visa Type</th>
+                <th>Department</th>
+                <th>End Date</th>
+                <th>Urgency</th>
+              </tr>
+            </thead>
+            <tbody id="expiringBody"></tbody>
+          </table>
+        </section>
       </section>
 
 
-      <!-- RECORDS VIEW -->
-      <section id="view-records" class="view">
-        <p>Records view placeholder—reuse the table/filter components from Dashboard as you expand.</p>
-      </section>
+      <!-- ARCHIVE VIEW -->
+      <section id="view-archive" class="view">
+          <h2>Archived Cases</h2>
+          <p>Cases whose end date is before today are automatically shown here and removed from the main dashboard.</p>
 
+          <table id="archiveTable">
+              <thead>
+              <tr id="archiveHead"></tr>
+              </thead>
+              <tbody id="archiveBody"></tbody>
+          </table>
+      </section>
 
       <!-- REPORTS VIEW -->
       <section id="view-reports" class="view">
         <h2>Reports</h2>
-        <button id="genderBtn">Load Gender Summary</button>
-        <div id="genderReport" class="report-box"></div>
+        
+        <section class="report-controls">
+          <label>
+            <span>Report type</span>
+            <select id="reportType">
+              <option value="gender">Gender Summary</option>
+              <option value="dept">Department Summary</option>
+              <option value="visaType">Visa Type Summary</option>
+              <option value="lengthStay">Length of Stay</option>
+              <option value="newH1B">New H-1B (by start date)</option>
+              <option value="expiringH1B">H1B Expiring (by end date)</option>
+
+            </select>
+          </label>
+
+          <label>
+            <span>Start date</span>
+            <input type="date" id="reportStart" />
+          </label>
+
+          <label>
+            <span>End date</span>
+            <input type="date" id="reportEnd" />
+          </label>
+
+          <button id="runReportBtn">Run Report</button>
+        </section>
+
+        <section id="reportSummary" class="report-box"></section>
+
+        <section id="reportTableSection">
+          <table id="reportTable" class="report-table">
+            <thead>
+              <tr id="reportHead"></tr>
+            </thead>
+            <tbody id="reportBody"></tbody>
+          </table>
+        </section>
       </section>
 
 
       <!-- AUDIT VIEW -->
       <section id="view-audit" class="view">
-        <p>Audit log placeholder.</p>
-      </section>
-    </main>
-  </div>
+        <h2>Audit Log</h2>
+        <p class="audit-help">All changes made to the data are logged here.</p>
 
+      <section class="audit-controls">
+      <label>
+        <span>User</span>
+        <select id="auditUserFilter">
+          </select>
+      </label>
+
+      <label>
+        <span>From date</span>
+        <input type="date" id="auditFrom" />
+      </label>
+
+      <label>
+        <span>To date</span>
+        <input type="date" id="auditTo" />
+      </label>
+
+      <button id="auditClearBtn" type="button">Clear Filters</button>
+    </section>
+
+      <table id="auditTable" class="report-table">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Record</th>
+            <th>Details</th> 
+          </tr>
+        </thead>
+        <tbody id="auditBody"></tbody>
+      </table>
+    </section>
+
+    
 
   <script src="script.js" defer></script>
 </body>

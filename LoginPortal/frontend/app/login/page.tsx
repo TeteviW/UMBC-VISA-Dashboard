@@ -7,13 +7,20 @@ type ActiveForm = "login" | "register";
 export default function LoginRegisterPage(){
     // Redirects the page when the Login Button is pressed
     const [activeForm, setActiveForm] = useState<ActiveForm>("login");
-
-    // Handle Error Cases
     const [loginError, setLoginError] = useState<string>("");
     const [registerError, setRegisterError] = useState<string>("");
-
-    //
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const isLocal = typeof window !== "undefined" && window.location.hostname === "localhost";
+
+    // automatically selects the correct backend URL:
+    const API_BASE = isLocal ? 
+    "http://localhost:4000/api" : 
+    "url for dedicated server"; // replace this....
+
+    const DASHBOARD_PATH = isLocal ? 
+    "/DashBoardProject/index.html" : 
+    "/UMBC-VISA-Dashboard/DashBoardProject/index.html";
 
     // switch between the register and login form
     function showForm(form: ActiveForm){
@@ -33,7 +40,7 @@ export default function LoginRegisterPage(){
         const password = String(formData.get("password") || "");
 
         try {
-        const res = await fetch("https://your-backend.com/api/login", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -46,13 +53,17 @@ export default function LoginRegisterPage(){
             return;
         }
 
-        // Redirect to the VISA Dashboard
-        window.location.href = "...";
+        // stores user info for auditing (to be implemented)
+        localStorage.setItem("user", JSON.stringify(data.user))
 
-        } catch {
-            setLoginError("Network Error. Please refresh the page...");
+        // Redirect to the VISA Dashboard
+        window.location.href = DASHBOARD_PATH;
+
+        } catch (err) {
+          console.error("Login Error:", err);
+          setLoginError("Unable to connect to the server. Please try again later.");
         } finally {
-            setIsSubmitting(false);
+          setIsSubmitting(false);
         }
     }
 
@@ -69,7 +80,7 @@ export default function LoginRegisterPage(){
         const role = String(formData.get("role") || "");
 
         try {
-        const res = await fetch("https://your-backend.com/api/register", {
+        const res = await fetch(`${API_BASE}/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, email, password, role }),
@@ -86,10 +97,11 @@ export default function LoginRegisterPage(){
         setActiveForm("login");
         setLoginError("Account created. Please log in.");
 
-        } catch {
-            setRegisterError("Network error. Please try again.");
+        } catch (err) {
+          console.error("Registration Error:", err);
+          setRegisterError("Unable to connect to the server. Please try again later.");
         } finally {
-            setIsSubmitting(false);
+          setIsSubmitting(false);
         }
     }
 
