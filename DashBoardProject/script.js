@@ -217,19 +217,6 @@ qs("#nextBtn").onclick = ()=>{
 };
 
 
-/***** REPORTS (demo) *****/
-/*
-qs("#genderBtn").addEventListener("click", async ()=>{
-  if(FETCH_MODE === "dummy"){
-    const counts = countBy(allRows, r=>r.gender||"Unknown");
-    qs("#genderReport").textContent = Object.entries(counts).map(([k,v])=>`${k}: ${v}`).join(" | ");
-  }else{
-    const rep = await fetchJSON(`${API_BASE}/api/reports/gender`);
-    const pairs = rep.labels.map((lab,i)=>`${lab}: ${rep.counts[i]}`);
-    qs("#genderReport").textContent = pairs.join(" | ");
-  }
-});
-*/
 
 /***** REPORTS *****/
 
@@ -332,9 +319,20 @@ function runReport(){
 
 /***** Individual Reports Implementation *****/
 
-// Gender Summart Report
+// Normalize raw Gender values to friendly labels
+function normalizeGender(value){
+  if(!value) return "Unknown";
+  const v = String(value).trim().toUpperCase();
+  if(v === "M" || v === "MALE") return "Male";
+  if(v === "F" || v === "FEMALE") return "Female";
+  return "Unknown";
+}
+
+
+
+// Gender Summary Report
 function renderGenderReport(){
-  const counts = countBy(allRows, r=>r.gender||"Unknown");
+  const counts = countBy(allRows, r=> normalizeGender(r.gender));
   const total = Object.values(counts).reduce((a,b)=>a+b,0);
 
 

@@ -28,7 +28,7 @@ SHEET = "Current H-1B cases" #Look at path to make sure its correct above
 #Basic column rename (source -> UI keys)
 COLUMN_MAP = {
     "First Name": "givenName",
-    "Last Name": "familyName",
+    "Last name": "familyName",
     "Start Date": "startDate",
     "Expiration Date": "endDate",
     "Department": "department",
